@@ -1,19 +1,21 @@
 {
   "name": "pongbot",
   "version": "1.0.0",
-  "description": "",
+  "description": "Pong Slack Bot",
+  "engines": {
+    "node": "5.0.0"
+  },
+  "private": true,
   "main": "gulpfile.js",
   "scripts": {
-    "babel-node": "babel-node --stage 0 --ignore='foo|bar|baz'"
+    "start": "node src/index.js"
   },
   "author": "Wisam Zaghal <wisamzaghal@gmail.com> (http://wisam.io/)",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.14.1",
     "express": "^4.13.3",
-    "request-promise": "^1.0.2"
-
+    "node-fetch": "^1.3.3"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }

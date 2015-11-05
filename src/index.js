@@ -1,26 +1,38 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
-var port = process.env.PORT || 8080;
-var router = express.Router();
-var rp = require('request-promise');
-var token = 'UkWMGR8rpzx37Qyss3JZbEdp';
+const express = require('express');
+const bodyParser = require('body-parser');
+const fetch = require('node-fetch');
 
-// body parser middleware
-app.use(bodyParser.urlencoded({ extended: true }));
+const app = express();
+const router = express.Router();
+
+const token = process.env.SLACK_AUTH_TOKEN;
+
+const port = process.env.PORT || 8080;
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(bodyParser.json());
 
 // test route
-app.get('/', function (req, res) { res.status(200).send('Hello world!') });
-
-app.post('/challenge', function(req, res, next) {
-  // console.log(req);
-  submitChallenge(req.body.user_name, req.body.text);
-  res.status(200).send('OK');
+router.get('/', function (req, res) { 
+  res.status(200).send('Hello world!');
 });
 
-app.post('/accept', function(req, res, next) {
-  var userName = req.body.user_name;
-  var botPayload = {
+router.post('/challenge', function(req, res, next) {
+  submitChallenge(req.body.user_name, req.body.text)
+  .then(() => {
+    res.status(200).send('OK');
+  })
+  .catch((err) => {
+    console.log(err);
+    res.status(500);
+  });
+});
+
+router.post('/accept', function(req, res, next) {
+  const userName = req.body.user_name;
+  const botPayload = {
     text : 'Let the games begin.',
     'icon_emoji': ':pingpong:'
   };
@@ -29,9 +41,11 @@ app.post('/accept', function(req, res, next) {
   if (userName !== 'slackbot') {
     return res.status(200).json(botPayload);
   } else {
-    return res.status(200).end();
+    return res.status(200);
   }
 });
+
+app.use('/api', router);
 
 app.use(function (err, req, res, next) {
   console.error(err.stack);
@@ -39,29 +53,23 @@ app.use(function (err, req, res, next) {
 });
 
 app.listen(port, function () {
-  console.log('Slack bot listening on port ' + port);
+  console.log('Pong bot listening on port ' + port);
 });
 
 
-
 function submitChallenge(challenger, challengee) {
-  var text = challengee + ' is being challenged by ' + challenger + '!\n' +
-  challengee + ', do you accept?';
+  const text = `${challengee} is being challenged by ${challenger}!\n${challengee}, do you accept?`;
 
-  var options = {
+  const options = {
       method: 'POST',
-      uri: 'https://hooks.slack.com/services/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',
-      body: {
-        'text': text,
-        'icon_emoji': ':pingpong:'
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       },
-      json: true // Automatically stringifies the body to JSON
+      body: JSON.stringify({
+        'text': text
+      })
   };
 
-  rp(options).then(function(res) {
-    console.log(res);
-  })
-  .then(null, function(e){
-    console.log(e);
-  })
+  return fetch(process.env.SLACK_URL, options);
 }
