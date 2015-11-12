@@ -1,7 +1,9 @@
+'use strict';
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
-
+const db = require('./mongo-service');
 const app = express();
 const router = express.Router();
 
@@ -15,7 +17,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 // test route
-router.get('/', function (req, res) { 
+router.get('/', function (req, res) {
   res.status(200).send('Hello world!');
 });
 
@@ -57,8 +59,13 @@ app.listen(port, function () {
 });
 
 
-function submitChallenge(challenger, challengee) {
-  const text = `${challengee} is being challenged by ${challenger}!\n${challengee}, do you accept?`;
+function submitChallenge(challengeFrom, challengeTo) {
+  db.challenge.insert({
+    challengeFrom: challengeFrom,
+    challengeTo: challengeTo
+  });
+
+  const text = `${challengeTo} is being challenged by ${challengeFrom}!\n${challengeTo}, do you accept?`;
 
   const options = {
       method: 'POST',
